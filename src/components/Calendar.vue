@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useDataStore } from '../stores/data';
 // import useDataStore from '../stores/data'
 import {DateTime, Duration, Info, Interval, Settings} from 'luxon';
@@ -54,7 +54,6 @@ function isNotCurrentDate(date){
 const calendar = computed(()=> {
     const year = currentDate.value.getFullYear();
     const month = currentDate.value.getMonth();
-    console.log(year);
     const firstDay = new Date(year, month, 1);
     const lastDay =  new Date(year, month + 1, 0);
     let startDay = firstDay.getDay();
@@ -62,7 +61,6 @@ const calendar = computed(()=> {
 
     const endDatePrev = new Date(year, month, 0).getDate();
 
-    console.log(endDay);
     // console.log(startDay);
     // console.log(endDay);
 
@@ -115,13 +113,17 @@ const next = () => {
 const checkDate = (day) => {
     const luxonDate = DateTime.fromJSDate(day.date);
     let dates = []
+    console.log("dsdsds");
     for(let i in getDates.value){
         dates.push(i)
     }
     const foundDate = dates.find(item => item == luxonDate.toISODate())
     if(foundDate){
-        const fillPercentage = Math.ceil((getDates.value[`${foundDate}`].engaged_count / getDefualtDayCapacity.value) * 100)
+        let fillPercentage = null
+        fillPercentage = Math.ceil((getDates.value[`${foundDate}`].engaged_count / getDefualtDayCapacity.value) * 100)
+        console.log(day.date);
         return fillPercentage
+
     }
     return null
     
@@ -187,7 +189,7 @@ onMounted(async() => {
                                 @click="console.log(day.date);"
                             >
                                 <span>{{ day.day }}</span>
-                                <div v-if="!isPastDate(day.date)" class="calendar__progress-bar" :style="{ height: `${checkDate(day)}%` }"></div>
+                                <div v-if="checkDate(day) && !isPastDate(day.date)" class="calendar__progress-bar" :style="{ height: `${checkDate(day)}%` }"></div>
                             </div>
                         </li>
                     </ul>
