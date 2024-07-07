@@ -1,0 +1,79 @@
+.prev, .next {
+    position: relative;
+    width: 50px;
+    height: 40px;
+    // padding: 5px 10px;
+    background-color: rgba(156, 252, 156, 0.137);
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+
+    &.prev::before, &.next::before{
+    content: '';
+    width: 15px;
+    height: 15px;
+    position: absolute;
+    top: 50%;
+    border-style: solid;
+    border-width: 0.23em 0.23em 0 0;
+    border-color: #ffffff;
+    border-radius: 2px;
+    }
+    &.prev::before{
+        left: 30px;
+    }
+
+    &.next::before{
+        right: 10px;
+    }
+
+    &.next::before{
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+    &.prev::before{
+        transform: translate(-50%, -50%) rotate(-135deg);
+    }
+
+}
+
+
+.month-btn, .day-btn {
+    background-color:transparent;
+    border: none;
+    color: $textColor;
+    font-size: 20px;
+    font-weight: 100;
+}
+
+.toggle-item{
+    float: left;
+    display: inline-block;
+    input{
+        display: none;
+
+        &:checked + label{
+            background-color: #82c0973d;
+        }
+    }
+    label{
+        display: inline-block;
+        padding: 2px 21px;   
+        line-height: 34px;    
+        border: 1px solid $accentColor;
+        border-right: none;
+        cursor: pointer;
+        user-select: none; 
+    }
+    
+}
+
+.toggle-day label {
+    border-radius: 9px 0 0 9px;
+}
+
+.toggle-month label {
+    border-radius: 0 6px 6px 0;
+	border-right: 1px solid #999;
+}
+
+// rgba(156, 252, 156, 0.137)
