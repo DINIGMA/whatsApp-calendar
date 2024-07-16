@@ -6,7 +6,8 @@ const url = "https://1ba67701b8743229.mokky.dev/whatsapp"
 
 export const useDataStore = defineStore("dataStore", () => {
     const whatsappResponse = ref(null)
-
+    const shedules = ref([])
+    
 
     const getSchedulerInfo = async () => {
         try{
@@ -23,10 +24,16 @@ export const useDataStore = defineStore("dataStore", () => {
 
     const getDefualtDayCapacity = computed(() => whatsappResponse.value ? whatsappResponse.value.data.default_day_capacity : null)
 
+    const getSchedules = computed(() => whatsappResponse?.value.data?.schedules)
+
+    const getDefualtHourCapacity = computed(() => whatsappResponse?.value.data?.default_hour_capacity)
+
     return {
         whatsappResponse,
         getSchedulerInfo,
         getDates,
-        getDefualtDayCapacity
+        getDefualtDayCapacity,
+        getSchedules,
+        getDefualtHourCapacity
     };
 })

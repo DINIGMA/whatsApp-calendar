@@ -1,5 +1,7 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import BookedSchedule from './BookedSchedule.vue';
+import Schedules from './Schedules.vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useDataStore } from '../stores/data';
 // import useDataStore from '../stores/data'
 import {DateTime, Duration, Info, Interval, Settings} from 'luxon';
@@ -8,29 +10,24 @@ import { storeToRefs } from 'pinia';
 
 const dataStore = useDataStore();
 
-
-const dt = DateTime.local()
-
+const calendarType = ref("month")
 
 
-const isDatePrev = ref(false)
-
-// const dates = computed(() => dataStore.whatsappResponse.data.dates)
-const { whatsappResponse, getDates, getDefualtDayCapacity } = storeToRefs(dataStore);
+const { getDates, getDefualtDayCapacity, getSchedules } = storeToRefs(dataStore);
 
 
 
 
+const currentDate = ref(DateTime.local())
+const selectedDay = ref(DateTime.local())
 
-const currentDate = ref(new Date)
-const nowDate = ref(new Date)
-const currentMonth = computed(() => {
-    return currentDate.value.toLocaleString('default', { month: 'long', year: 'numeric' });
-});
 
-function isSameDay(date1, date2) {
-    return date1.toDateString() === date2.toDateString();
-}
+const nowDate = ref(DateTime.local())
+// const currentMonth = computed(() => {
+//     return currentDate.value.toLocaleString('default', { month: 'long', year: 'numeric' });
+// });
+
+
 
 
 function isPastDate(date){
@@ -38,59 +35,50 @@ function isPastDate(date){
 }
 
 function isNotCurrentDate(date){
-    const lastDayMonth = new Date(
-        currentDate.value.getFullYear(), 
-        currentDate.value.getMonth() + 1, 
-        0
-    )
-    const firstDayOfMonth = new Date(
-        currentDate.value.getFullYear(), 
-        currentDate.value.getMonth(), 
-        1
-    )
-    return ( (date > lastDayMonth || date < firstDayOfMonth) & date > nowDate.value) ? true : false
+    const endDay = currentDate.value.endOf('month')
+
+    const startDay = DateTime.local(currentDate.value.year, currentDate.value.month, 1)
+
+    return ( (date > endDay || date < startDay) & date > nowDate.value) ? true : false
 }
 
 const calendar = computed(()=> {
-    const year = currentDate.value.getFullYear();
-    const month = currentDate.value.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay =  new Date(year, month + 1, 0);
-    let startDay = firstDay.getDay();
-    const endDay = lastDay.getDate();
+    let year = currentDate.value.year
+    let month = currentDate.value.month
+    const startDay = DateTime.local(year,month, 1).weekday
+    const endDay = currentDate.value.endOf('month').day
 
-    const endDatePrev = new Date(year, month, 0).getDate();
+    const endDatePrev = currentDate.value.minus({months:1}).endOf('month').day
 
-    // console.log(startDay);
-    // console.log(endDay);
 
     let date = 1;
     let weeks = []
 
     for(let i=0; i < 6; i++){
         const days = []
-        if(startDay == 0 ){
-            startDay = 7
-        }
         for(let j = 1; j <= 7; j++){
             if (i === 0 && startDay > j) {
-                const currentDate = new Date(year, month-1, endDatePrev-startDay+j+1);
-                days.push({ day: endDatePrev-startDay+j+1, date: currentDate});
+                // const currentDate1 = new Date(year, month-1, endDatePrev1-startDay1+j+1);
+                const currentDate = new Date(year, month-2, endDatePrev-startDay+j+1);
+                const currentDateLuxon = DateTime.fromJSDate(currentDate)
+                days.push({ day: currentDateLuxon.day, date: currentDateLuxon});
             }
             else{
                 if(date > endDay){
-                    const currentDate = new Date(year,month+1,date-endDay)
-                    days.push({ day: currentDate.getDate(), date: currentDate});
+                    const currentDate = new Date(year,month,date-endDay)
+                    const currentDateLuxon = DateTime.fromJSDate(currentDate)
+                    days.push({ day: currentDateLuxon.day, date: currentDateLuxon});
                     date++
                 }else{
-                    const currentDate = new Date(year,month,date);
+                    // const currentDate1 = new Date(year,month,date);
+                    const currentDate = DateTime.local(year,month,date)
                     days.push({day:date,date:currentDate})
                     date++  
                 }
-                
             }
         }
         weeks.push(days);
+        
     }
     console.log(weeks);
     return weeks;
@@ -99,29 +87,36 @@ const calendar = computed(()=> {
 })
 
 const previous = () => {
-      currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() - 1, 1);
-      console.log(dt);
-      console.log(dt.toLocaleString());
+        if(calendarType.value == 'month'){
+            currentDate.value = currentDate.value.minus({month: 1}).startOf('month')
+        }else{
+            currentDate.value = currentDate.value.minus({day: 1})
+            selectedDay.value = selectedDay.value.minus({day: 1})
+        }
     };
 
 const next = () => {
-    currentDate.value = new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 1);
+    if(calendarType.value == 'month'){
+        currentDate.value = currentDate.value.plus({month: 1}).startOf('month')
+    }else{
+        currentDate.value = currentDate.value.plus({day: 1})
+        selectedDay.value = selectedDay.value.plus({day: 1})
+    }
 };
 
 
 
 const checkDate = (day) => {
-    const luxonDate = DateTime.fromJSDate(day.date);
     let dates = []
-    console.log("dsdsds");
     for(let i in getDates.value){
         dates.push(i)
     }
-    const foundDate = dates.find(item => item == luxonDate.toISODate())
+
+    const foundDate = dates.find(item => item == day.toISODate())
+
     if(foundDate){
         let fillPercentage = null
         fillPercentage = Math.ceil((getDates.value[`${foundDate}`].engaged_count / getDefualtDayCapacity.value) * 100)
-        console.log(day.date);
         return fillPercentage
 
     }
@@ -129,8 +124,30 @@ const checkDate = (day) => {
     
 }
 
+const getCalendarInfo = computed(() => {
+    const dates = getSchedules.value.filter((item) => item.date == selectedDay.value.toISODate())
+    if(dates.length > 0){ 
+        const calendarInfo = dates.reduce((sum,item)  => { 
+            return Number(item.engaged_count) + sum
+        },0)
+        return getDefualtDayCapacity.value - calendarInfo
+    }else {
+        return getDefualtDayCapacity.value
+    } 
+})
+
+
+
+const toggleCalendarType = (day) => {
+    if(day>nowDate.value){
+        selectedDay.value = day
+        calendarType.value = "day"
+    }
+}
+
+
 onMounted(async() => {
-    await dataStore.getSchedulerInfo()
+    await dataStore.getSchedulerInfo();
 })
 
 
@@ -153,20 +170,40 @@ onMounted(async() => {
                 <div class="calendar__header">
                     <div class="calendar__selection-dates">
                         <button class="prev" @click="previous"></button>
-                        <span class="calendar__selection-dates-text">{{ currentMonth }}</span>
+                        <div>
+                            <span v-if="calendarType == 'month'" class="calendar__selection-dates-text">
+                                {{ currentDate.setLocale("ru").toFormat('LLLL yyyy г.') }}
+                            </span> 
+                            <span v-else class="calendar__selection-dates-text">
+                                {{ selectedDay.setLocale("ru").toFormat('dd LLL yyyy г.') }}
+                            </span>
+                        </div>    
                         <button class="next" @click="next"></button>   
                     </div>
                     <div class="calendar__toggle-date">
                         <div class="toggle-item toggle-day">
-                            <input type="radio" checked name="toggle-date" value="month" id="month-btn"/>
+                            <input 
+                                type="radio" 
+                                checked 
+                                name="toggle-date" 
+                                value="month" 
+                                id="month-btn" 
+                                v-model="calendarType"
+                            />
                             <label for="month-btn">Месяц</label></div>
                         <div class="toggle-item toggle-month">
-                            <input type="radio" name="toggle-date" value="day" id="day-btn"/>
+                            <input 
+                                type="radio" 
+                                name="toggle-date" 
+                                value="day" 
+                                id="day-btn"
+                                v-model="calendarType"
+                            />
                             <label for="day-btn">День</label></div>     
                     </div>
 
                 </div>
-                <div class="calendar__days">
+                <div class="calendar__days" v-if="calendarType == 'month'">
                     <ul class="calendar__day-of-week">
                         <li class="day-of-week-item">Пн</li>
                         <li class="day-of-week-item">Вт</li>
@@ -186,14 +223,40 @@ onMounted(async() => {
                                         {'calendar__day_prevDate': isPastDate(day.date)}, 
                                         {'calendar__day_not-current' : isNotCurrentDate(day.date)} 
                                     ]"
-                                @click="console.log(day.date);"
+                                @click="toggleCalendarType(day.date)"
                             >
                                 <span>{{ day.day }}</span>
-                                <div v-if="checkDate(day) && !isPastDate(day.date)" class="calendar__progress-bar" :style="{ height: `${checkDate(day)}%` }"></div>
+                                <div v-if="checkDate(day.date) && !isPastDate(day.date)" class="calendar__progress-bar" :style="{ height: `${checkDate(day.date)}%` }"></div>
                             </div>
                         </li>
                     </ul>
                 </div>
+                <div v-else>
+                   <div class="calendar__info">
+                     <span>Свободно на день <b>{{ getCalendarInfo }}</b> из <b>{{ getDefualtDayCapacity }}</b></span>
+                   </div>
+                   <div class="calendar__time-options">
+                        <div class="calendar__time-options-item" time="7:00-15:00">
+                            <Schedules 
+                                class="schedules" 
+                                :selectedDay="selectedDay"
+                                :time="7"
+                                :class="{'schedules_filled' : isPastDate(selectedDay)}"
+                                >
+                            </Schedules>
+                        </div>
+                        <div class="calendar__time-options-item" time="10:00-20:00">
+                            <Schedules 
+                                class="schedules" 
+                                :selectedDay="selectedDay"
+                                :time="10"
+                                :class="{'schedules_filled' : isPastDate(selectedDay)}"
+                                >
+                            </Schedules>
+                        </div>
+                   </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -203,31 +266,5 @@ onMounted(async() => {
 
 
 <style>
-    /* .calendar__dates{
-        width: 1000px;
-        padding: 10px;    
-    }
-
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.days {
-  display: grid;
-}
-
-.week {
-  display: flex;
-}
-
-.day {
-  flex: 1;
-  padding: 5px;
-  text-align: center;
-  border: 1px solid #eee;
-} */
+    
 </style>
