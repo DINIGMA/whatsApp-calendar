@@ -1,11 +1,13 @@
 <script setup>
 import BookedSchedule from './BookedSchedule.vue';
+import TimeOptions from './TimeOptions.vue';
 import Schedules from './Schedules.vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch, provide } from 'vue';
 import { useDataStore } from '../stores/data';
 // import useDataStore from '../stores/data'
 import {DateTime, Duration, Info, Interval, Settings} from 'luxon';
 import { storeToRefs } from 'pinia';
+
 
 
 const dataStore = useDataStore();
@@ -15,14 +17,18 @@ const calendarType = ref("month")
 
 const { getDates, getDefualtDayCapacity, getSchedules } = storeToRefs(dataStore);
 
-
-
-
-const currentDate = ref(DateTime.local())
-const selectedDay = ref(DateTime.local())
+const emits = defineEmits(['update-date', 'close-popup']);
 
 
 const nowDate = ref(DateTime.local())
+const currentDate = ref(DateTime.local())
+const selectedDay = ref(DateTime.local())
+
+const selectedTime = ref(null)
+
+provide('selectedTime', selectedTime)
+provide('selectedDay', selectedDay)
+
 // const currentMonth = computed(() => {
 //     return currentDate.value.toLocaleString('default', { month: 'long', year: 'numeric' });
 // });
@@ -89,7 +95,7 @@ const calendar = computed(()=> {
 const previous = () => {
         if(calendarType.value == 'month'){
             currentDate.value = currentDate.value.minus({month: 1}).startOf('month')
-        }else{
+        }else if(!isPastDate(selectedDay.value) & calendarType.value == 'day'){
             currentDate.value = currentDate.value.minus({day: 1})
             selectedDay.value = selectedDay.value.minus({day: 1})
         }
@@ -136,6 +142,11 @@ const getCalendarInfo = computed(() => {
     } 
 })
 
+//Принять дату в другом формате (date, time), а форматировать в родительском
+const updateSelectedTime = (data) => {
+    selectedTime.value = data
+    emits('update-date', data)
+}
 
 
 const toggleCalendarType = (day) => {
@@ -156,8 +167,9 @@ onMounted(async() => {
 
 
 <template>
-    <div class="container">
         <div class="calendar">
+            <div class="calndar__close" @click="emits('close-popup')">
+            </div>
             <h1 class="calendar__title">
                 Задание на WhatsApp
             </h1>
@@ -236,7 +248,22 @@ onMounted(async() => {
                      <span>Свободно на день <b>{{ getCalendarInfo }}</b> из <b>{{ getDefualtDayCapacity }}</b></span>
                    </div>
                    <div class="calendar__time-options">
-                        <div class="calendar__time-options-item" time="7:00-15:00">
+                        <TimeOptions
+                            :selectedDay="selectedDay"
+                            :time="7"
+                            hour="7:00-15:00"
+                            @update-value="updateSelectedTime"
+                        >
+                        </TimeOptions>
+                        <TimeOptions
+                            :selectedDay="selectedDay"
+                            :time="10"
+                            hour="10:00-20:00"
+                            @update-value="updateSelectedTime"
+                        >
+                        </TimeOptions>
+                        <!-- Можно сделать окно с ошибкой -->
+                        <!-- <div class="calendar__time-options-item" time="7:00-15:00">
                             <Schedules 
                                 class="schedules" 
                                 :selectedDay="selectedDay"
@@ -244,8 +271,8 @@ onMounted(async() => {
                                 :class="{'schedules_filled' : isPastDate(selectedDay)}"
                                 >
                             </Schedules>
-                        </div>
-                        <div class="calendar__time-options-item" time="10:00-20:00">
+                        </div> -->
+                        <!-- <div class="calendar__time-options-item" time="10:00-20:00">
                             <Schedules 
                                 class="schedules" 
                                 :selectedDay="selectedDay"
@@ -253,13 +280,14 @@ onMounted(async() => {
                                 :class="{'schedules_filled' : isPastDate(selectedDay)}"
                                 >
                             </Schedules>
-                        </div>
+                        </div> -->
                    </div>
+                   <button v-if="selectedTime" @click="emits('close-popup')" class="complete"><span>Готово</span></button>
                 </div>
+
                 
             </div>
         </div>
-    </div>
    
 </template>
 

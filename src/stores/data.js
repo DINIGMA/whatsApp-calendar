@@ -13,7 +13,6 @@ export const useDataStore = defineStore("dataStore", () => {
         try{
             const {data} = await axios.get(url)
             whatsappResponse.value = data[0];
-            console.log(whatsappResponse.value.data.dates);
         }catch(err){
             console.log(err);
         }
@@ -28,12 +27,17 @@ export const useDataStore = defineStore("dataStore", () => {
 
     const getDefualtHourCapacity = computed(() => whatsappResponse?.value.data?.default_hour_capacity)
 
+    const getHourCapacity = computed(() => {
+        return (time) => whatsappResponse?.value.data?.default_hour_capacity[time]
+    })
+
     return {
         whatsappResponse,
         getSchedulerInfo,
         getDates,
         getDefualtDayCapacity,
         getSchedules,
-        getDefualtHourCapacity
+        getDefualtHourCapacity,
+        getHourCapacity,
     };
 })

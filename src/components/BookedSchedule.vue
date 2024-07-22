@@ -1,31 +1,25 @@
 <script setup>
 import { useDataStore } from '../stores/data';
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, inject } from 'vue';
 
 const dataStore = useDataStore();
-const {getDefualtHourCapacity } = storeToRefs(dataStore);
 
 
-const props = defineProps({
-    scheduler: Number,
-    defaultHourCapacity: Number
-})
+const { defaultHourCapacity ,getBookedScheduler } = inject("bookedSchedules")
 
 const procentBookedScheduler = computed(() => {
-    if(props.scheduler !== null){
-        return ((props.scheduler / props.defaultHourCapacity) * 100).toFixed(5)
+    if(getBookedScheduler.value !== null){
+        return ((getBookedScheduler.value / defaultHourCapacity.value) * 100).toFixed(5)
     }
 })
-
-
 
 </script>    
     
 
 <template>
     <div v-if="procentBookedScheduler" :style="{ width: `${procentBookedScheduler}%` }">
-        <span>{{ scheduler }}</span>
+        <span>{{ procentBookedScheduler >20?"Забронированно:" : null }} {{procentBookedScheduler > 2 ? getBookedScheduler : null }}</span>
     </div>
 </template>
     

@@ -1,0 +1,45 @@
+.date-editor {
+    width: 300px;
+    margin-bottom: 20px;
+    
+}
+.date-editor__title {
+    color: #f0f0f0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+
+.input-date-wrapper {
+    width: 200px;
+    position: relative;
+    font-size: 14px;
+    color: #c8c8c8;
+
+    span{
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 8px;
+        display: flex;
+        align-items: center;
+    }
+}
+.input-date {
+    height: 40px;
+    padding: 27px 30px 27px 35px;
+    width: 100%;
+    background: hsla(0, 0%, 100%, .1);
+    border: none;
+    color: #c0c4cc;
+    border-radius: 8px;
+
+    &:focus {
+        outline: 0;
+        outline-offset: 0;
+    }
+    &::placeholder {
+        font-size: 14px;
+        color: #c0c4cc;
+      }
+}

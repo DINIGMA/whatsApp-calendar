@@ -1,4 +1,44 @@
 .calendar {
+    position: relative;
+    width: 850px;
+    margin: 40px auto;
+    padding: 53px 105px 53px 105px;
+    border-radius: 10px;
+    background-color: $bgColor;
+}
+
+.calndar__close {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 30px;
+    right: 30px;
+    cursor: pointer;
+
+    &:hover{
+        opacity: 0.5;
+    }
+
+    &::before{
+        position: absolute;
+        top: 50%;
+        content: "";
+        width: 20px;
+        height: 3px;
+        background: #313131;
+        transform: rotate(-45deg);
+    }
+    &::after{
+        position: absolute;
+        top: 50%;
+        content: "";
+        width: 20px;
+        height: 3px;
+        background: #313131;
+        transform: rotate(45deg);
+    }
+
+
 }
 
 .calendar__title {
@@ -72,12 +112,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 93px;
+    height: 85px;
     width: calc(100% / 7);
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 700;
     border: 1px solid white;
-    border-radius: 20px;
+    border-radius: 15px;
     overflow: hidden;
     cursor: pointer;
 
@@ -104,7 +144,7 @@
     right: 0;
 
     background-color: #82c198; /* Цвет прогресса */
-    border-radius: 20px;
+    border-radius: 15px;
     width: 100%;
     z-index: 1;
 }
@@ -126,7 +166,8 @@
     gap: 10px;
 }
 .calendar__time-options-item {
-    flex: 0 0 100%;
+    flex: 0 0 calc(100% - 50px);
+    margin-left: 50px;
     display: flex;
     border: 1px solid #313131;
     border-radius: 10px;
@@ -135,7 +176,7 @@
     align-items: center;
     cursor: pointer;
     &::before{
-        content: attr(time);
+        content: attr(hour);
         position: absolute;
         font-weight: 400;
         font-size: 16px;
@@ -153,16 +194,21 @@
     width: 100%;
     display: flex;
     div{
-        // width: 50%;
         background-color: #444745;
         border: 1px solid hsla(0, 0%, 100%, .271);
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
+        text-align: center;
+        font-size: 14px;
+    }
 
+    .own{
+        background-color: #82c198;
     }
 }
 .schedules_filled{
     background: repeating-linear-gradient(-55deg, rgba(34, 34, 34, .4), rgba(34, 34, 34, .4) 10px, rgba(51, 51, 51, .4) 0, rgba(51, 51, 51, .4) 20px);;
 }
+
